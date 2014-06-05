@@ -44,6 +44,8 @@ class Twemproxy(base.SocketStatsPlugin):
             # Per server stats
             if isinstance(pstats, dict):
                 for sname, sstats in pstats.items():
+                    # TODO: per server stats!
+                    pass
 
 
 

@@ -18,6 +18,7 @@ NewRelic platform. Currently supported backend systems are:
 - RabbitMQ
 - Redis
 - Riak
+- twemproxy (nutcracker)
 - uWSGI
 
 Base Requirements
@@ -406,6 +407,11 @@ Configuration Example
           host: localhost
           port: 8098
           #verify_ssl_cert: true
+          
+      twemproxy:
+        - name: localhost
+          host: localhost
+          port: 22222
 
     Daemon:
       user: newrelic

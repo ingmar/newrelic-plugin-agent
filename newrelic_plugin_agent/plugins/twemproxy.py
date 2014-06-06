@@ -74,18 +74,18 @@ class Twemproxy(base.SocketStatsPlugin):
         #  in_queue_bytes      "current request bytes in incoming queue"
         #  out_queue           "# requests in outgoing queue"
         #  out_queue_bytes     "current request bytes in outgoing queue"
-        self.add_derive_value('Server/%s/Server EOF' % sname, 'connections', sstats['server_eof'])
-        self.add_derive_value('Server/%s/Server Errors' % sname, 'connections', sstats['server_err'])
-        self.add_derive_value('Server/%s/Server Timeouts' % sname, 'connections', sstats['server_timedout'])
-        self.add_gauge_value ('Server/%s/Server Connections' % sname, 'connections', sstats['server_connections'])
-        self.add_derive_value('Server/%s/Requests' % sname, 'requests', sstats['requests'])
-        self.add_derive_value('Server/%s/Request Bytes' % sname, 'bytes', sstats['request_bytes'])
-        self.add_derive_value('Server/%s/Responses' % sname, 'requests', sstats['responses'])
-        self.add_derive_value('Server/%s/Response Bytes' % sname, 'bytes', sstats['response_bytes'])
-        self.add_derive_value('Server/%s/Queued Incoming Requests' % sname, 'requests', sstats['in_queue'])
-        self.add_derive_value('Server/%s/Queued Incoming Bytes' % sname, 'bytes', sstats['in_queue_bytes'])
-        self.add_derive_value('Server/%s/Queued Outgoing Requests' % sname, 'requests', sstats['out_queue'])
-        self.add_derive_value('Server/%s/Queued Outgoing Bytes' % sname, 'bytes', sstats['out_queue_bytes'])
+        self.add_derive_value('Server/%s:%s/Server EOF' % (pname, sname), 'connections', sstats['server_eof'])
+        self.add_derive_value('Server/%s:%s/Server Errors' % (pname, sname), 'connections', sstats['server_err'])
+        self.add_derive_value('Server/%s:%s/Server Timeouts' % (pname, sname), 'connections', sstats['server_timedout'])
+        self.add_gauge_value ('Server/%s:%s/Server Connections' % (pname, sname), 'connections', sstats['server_connections'])
+        self.add_derive_value('Server/%s:%s/Requests' % (pname, sname), 'requests', sstats['requests'])
+        self.add_derive_value('Server/%s:%s/Request Bytes' % (pname, sname), 'bytes', sstats['request_bytes'])
+        self.add_derive_value('Server/%s:%s/Responses' % (pname, sname), 'requests', sstats['responses'])
+        self.add_derive_value('Server/%s:%s/Response Bytes' % (pname, sname), 'bytes', sstats['response_bytes'])
+        self.add_derive_value('Server/%s:%s/Queued Incoming Requests' % (pname, sname), 'requests', sstats['in_queue'])
+        self.add_derive_value('Server/%s:%s/Queued Incoming Bytes' % (pname, sname), 'bytes', sstats['in_queue_bytes'])
+        self.add_derive_value('Server/%s:%s/Queued Outgoing Requests' % (pname, sname), 'requests', sstats['out_queue'])
+        self.add_derive_value('Server/%s:%s/Queued Outgoing Bytes' % (pname, sname), 'bytes', sstats['out_queue_bytes'])
 
     def fetch_data(self, connection):
         """Loop in and read in all the data until we have received it all.

@@ -173,7 +173,7 @@ class ElasticSearch(base.JSONStatsPlugin):
 
     def add_node_stats(self, stats):
         for node in stats.get('nodes'):
-            nodename = stats[node]['name']
+            nodename = stats['nodes'][node]['name']
             jvm = stats[node]['jvm']
             self.add_gauge_value('Nodes/%s/JVM/Heap Used' % nodename, 'percent', jvm['mem']['heap_used_percent'])
             self.add_gauge_value('Nodes/%s/JVM/GC Collectors (Old)' % nodename, 'count', jvm['gc']['collectors']['old']['collection_count'])

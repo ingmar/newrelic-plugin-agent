@@ -40,6 +40,7 @@ class ElasticSearch(base.JSONStatsPlugin):
         self.add_index_datapoints(totals)
         self.add_network_datapoints(totals)
         self.add_cluster_stats()
+        self.add_node_stats(stats)
 
     def add_cluster_stats(self):
         """Add stats that go under Component/Cluster"""
@@ -169,6 +170,13 @@ class ElasticSearch(base.JSONStatsPlugin):
                               network.get('out_seg', 0))
         self.add_derive_value('Network/Segments/Retransmitted', 'seg',
                               network.get('retrans_segs', 0))
+
+    def add_node_stats(self, stats):
+        for node in stats.get('nodes'):
+            nodename = stats[node]['name']
+            jvm = stats[node]['jvm']
+            self.add_gauge_value('Nodes/%s/JVM/Heap Used', 'percent', jvm['mem']['heap_used_percent'])
+            self.add_gauge_value('Nodes/%s/JVM/GC Collectors (Old)', 'count', jvm['gc']['collectors']['old']['collection_count'])
 
     def process_tree(self, tree, values):
         """Recursively combine all node stats into a single top-level value

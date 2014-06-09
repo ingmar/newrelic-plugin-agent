@@ -175,8 +175,8 @@ class ElasticSearch(base.JSONStatsPlugin):
         for node in stats.get('nodes'):
             nodename = stats[node]['name']
             jvm = stats[node]['jvm']
-            self.add_gauge_value('Nodes/%s/JVM/Heap Used', 'percent', jvm['mem']['heap_used_percent'])
-            self.add_gauge_value('Nodes/%s/JVM/GC Collectors (Old)', 'count', jvm['gc']['collectors']['old']['collection_count'])
+            self.add_gauge_value('Nodes/%s/JVM/Heap Used' % nodename, 'percent', jvm['mem']['heap_used_percent'])
+            self.add_gauge_value('Nodes/%s/JVM/GC Collectors (Old)' % nodename, 'count', jvm['gc']['collectors']['old']['collection_count'])
 
     def process_tree(self, tree, values):
         """Recursively combine all node stats into a single top-level value

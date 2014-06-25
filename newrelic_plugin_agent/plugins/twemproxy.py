@@ -4,6 +4,7 @@ twemproxy (nutcracker)
 """
 import logging
 import json
+from collections import defaultdict
 
 from newrelic_plugin_agent.plugins import base
 
@@ -15,6 +16,13 @@ class Twemproxy(base.SocketStatsPlugin):
     DEFAULT_PORT = 22222
     GUID = 'com.onlulu.newrelic_twemproxy_agent'
 
+    # Pool stats to summarize
+    POOL_TOTALS = [
+        'client_err',
+        'forward_error',
+        'server_ejects',
+    ]
+
     def add_datapoints(self, stats):
         """Add all of the data points for each pool.
 
@@ -23,15 +31,14 @@ class Twemproxy(base.SocketStatsPlugin):
         """
         # Pools
         for pname, pstats in stats.items():
-            if not isinstance(pstats, dict):
-                continue
-            self.add_pool_stats(pname, pstats)
+            if isinstance(pstats, dict):
+                self.add_pool_stats(pname, pstats)
+                # Servers in each pool
+                for sname, sstats in pstats.items():
+                    if isinstance(sstats, dict):
+                        self.add_server_stats(pname, sname, sstats)
 
-            # Servers in each pool
-            for sname, sstats in pstats.items():
-                if not isinstance(sstats, dict):
-                    continue
-                self.add_server_stats(pname, sname, sstats)
+        self.add_totals(stats)
 
     def add_pool_stats(self, pname, pstats):
         """Add all data points for a pool.
@@ -40,18 +47,18 @@ class Twemproxy(base.SocketStatsPlugin):
         :param dict pstats: pool stats
         """
         # pool stats:
+        #   client_connections  "# active client connections"
         #   client_eof          "# eof on client connections"
         #   client_err          "# errors on client connections"
-        #   client_connections  "# active client connections"
-        #   server_ejects       "# times backend server was ejected"
         #   forward_error       "# times we encountered a forwarding error"
         #   fragments           "# fragments created from a multi-vector request"
+        #   server_ejects       "# times backend server was ejected"
+        self.add_gauge_value ('Pool/%s/Client Connections' % pname, 'connections', pstats['client_connections'])
         self.add_derive_value('Pool/%s/Client EOF' % pname, 'connections', pstats['client_eof'])
         self.add_derive_value('Pool/%s/Client Errors' % pname, 'connections', pstats['client_err'])
-        self.add_gauge_value ('Pool/%s/Client Connections' % pname, 'connections', pstats['client_connections'])
-        self.add_derive_value('Pool/%s/Server Ejects' % pname, 'ejects', pstats['server_ejects'])
         self.add_derive_value('Pool/%s/Forwarding Errors' % pname, 'errors', pstats['forward_error'])
         self.add_derive_value('Pool/%s/Fragments created' % pname, 'fragments', pstats['fragments'])
+        self.add_derive_value('Pool/%s/Server Ejects' % pname, 'ejects', pstats['server_ejects'])
 
     def add_server_stats(self, pname, sname, sstats):
         """Add all data points for a server in a pool.
@@ -86,6 +93,23 @@ class Twemproxy(base.SocketStatsPlugin):
         self.add_derive_value('Server/%s:%s/Queued Incoming Bytes' % (pname, sname), 'bytes', sstats['in_queue_bytes'])
         self.add_derive_value('Server/%s:%s/Queued Outgoing Requests' % (pname, sname), 'requests', sstats['out_queue'])
         self.add_derive_value('Server/%s:%s/Queued Outgoing Bytes' % (pname, sname), 'bytes', sstats['out_queue_bytes'])
+
+    def add_totals(self, stats):
+        """Add totals for some data points (the ones useful for alerts)
+
+        :param dict stats: all
+
+        """
+        totals = defaultdict(int)
+        for pname, pstats in stats.items():
+            if isinstance(pstats, dict):
+                for sname in self.POOL_TOTALS:
+                    totals[sname] += pstats[sname]
+
+        self.add_derive_value('Totals/Client Errors', 'errors', totals['client_err'])
+        self.add_derive_value('Totals/Forwarding Errors', 'errors', totals['forward_error'])
+        self.add_derive_value('Totals/Server Ejects', 'errors', totals['server_ejects'])
+
 
     def fetch_data(self, connection):
         """Loop in and read in all the data until we have received it all.

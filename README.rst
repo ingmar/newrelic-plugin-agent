@@ -409,8 +409,7 @@ Configuration Example
           #verify_ssl_cert: true
           
       twemproxy:
-        - name: localhost
-          host: localhost
+        - host: localhost
           port: 22222
 
     Daemon:

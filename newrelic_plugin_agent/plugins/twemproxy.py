@@ -105,6 +105,7 @@ class Twemproxy(base.SocketStatsPlugin):
                     if isinstance(pv, dict):  # Server
                         for snk, sv in pv.items():
                             ptotals[nk][snk] += sv
+                            totals[snk] += sv
                     else:  # Pool stat
                         totals[pnk] += pv
 
@@ -112,6 +113,7 @@ class Twemproxy(base.SocketStatsPlugin):
         self.add_derive_value('Totals/Client Errors', 'errors', totals['client_err'])
         self.add_derive_value('Totals/Forwarding Errors', 'errors', totals['forward_error'])
         self.add_derive_value('Totals/Server Ejects', 'errors', totals['server_ejects'])
+        self.add_derive_value('Totals/Requests', 'requests', totals['requests'])
 
         # Add per-pool sums
         for pname, pstats in ptotals.items():

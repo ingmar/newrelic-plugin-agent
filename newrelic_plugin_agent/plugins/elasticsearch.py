@@ -20,7 +20,7 @@ class ElasticSearch(base.JSONStatsPlugin):
     DEFAULT_HOST = 'localhost'
     DEFAULT_PATH = '/_nodes/stats?all'
     DEFAULT_PORT = 9200
-    GUID = 'com.meetme.newrelic_elasticsearch_node_agent'
+    GUID = 'com.onlulu.newrelic_elasticsearch_node_agent'
 
     def add_datapoints(self, stats):
         """Add all of the datapoints for the Elasticsearch poll
@@ -40,6 +40,7 @@ class ElasticSearch(base.JSONStatsPlugin):
         self.add_index_datapoints(totals)
         self.add_network_datapoints(totals)
         self.add_cluster_stats()
+        self.add_node_stats(stats)
 
     def add_cluster_stats(self):
         """Add stats that go under Component/Cluster"""
@@ -169,6 +170,22 @@ class ElasticSearch(base.JSONStatsPlugin):
                               network.get('out_seg', 0))
         self.add_derive_value('Network/Segments/Retransmitted', 'seg',
                               network.get('retrans_segs', 0))
+
+    def add_node_stats(self, stats):
+        """Add stats for each node by name.
+
+        :param dict stats: The stats to process for the values
+
+        """
+        for node in stats.get('nodes'):
+            nodename = stats['nodes'][node]['name']
+            jvm = stats['nodes'][node]['jvm']
+            self.add_gauge_value('Nodes/%s/JVM/Heap Used' % nodename, 'percent', jvm['mem']['heap_used_percent'])
+            self.add_derive_value('Nodes/%s/JVM/GC Collectors (Young)' % nodename, 'count', jvm['gc']['collectors']['young']['collection_count'])
+            self.add_derive_value('Nodes/%s/JVM/GC Collectors (Old)' % nodename, 'count', jvm['gc']['collectors']['old']['collection_count'])
+
+            thread_pool = stats['nodes'][node]['thread_pool']
+            self.add_gauge_value('Nodes/%s/Threadpool/Search/Queue' % nodename, 'threads', thread_pool['search']['queue'])
 
     def process_tree(self, tree, values):
         """Recursively combine all node stats into a single top-level value

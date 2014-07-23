@@ -177,15 +177,22 @@ class ElasticSearch(base.JSONStatsPlugin):
         :param dict stats: The stats to process for the values
 
         """
+        jvm_heap_used_percent_all_nodes = []
         for node in stats.get('nodes'):
             nodename = stats['nodes'][node]['name']
             jvm = stats['nodes'][node]['jvm']
-            self.add_gauge_value('Nodes/%s/JVM/Heap Used' % nodename, 'percent', jvm['mem']['heap_used_percent'])
+
+            heap_used_percent = jvm['mem']['heap_used_percent']
+            self.add_gauge_value('Nodes/%s/JVM/Heap Used' % nodename, 'percent', heap_used_percent)
+            jvm_heap_used_percent_all_nodes.append(heap_used_percent)
             self.add_derive_value('Nodes/%s/JVM/GC Collectors (Young)' % nodename, 'count', jvm['gc']['collectors']['young']['collection_count'])
             self.add_derive_value('Nodes/%s/JVM/GC Collectors (Old)' % nodename, 'count', jvm['gc']['collectors']['old']['collection_count'])
 
             thread_pool = stats['nodes'][node]['thread_pool']
             self.add_gauge_value('Nodes/%s/Threadpool/Search/Queue' % nodename, 'threads', thread_pool['search']['queue'])
+        # Add the largest JVM Heap usage across all nodes, for alerting.
+        self.add_gauge_value('Nodes/JVM Heap Used (Top)', 'percent', max(jvm_heap_used_percent_all_nodes))
+
 
     def process_tree(self, tree, values):
         """Recursively combine all node stats into a single top-level value

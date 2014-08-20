@@ -46,7 +46,7 @@ class ElasticSearch(base.JSONStatsPlugin):
         """Add stats that go under Component/Cluster"""
         url = self.stats_url.replace(self.DEFAULT_PATH, '/_cluster/health')
         response = self.http_get(url)
-        if response.status_code == 200:
+        if response is not None and response.status_code == 200:
             data = response.json()
             self.add_gauge_value('Cluster/Nodes', 'nodes',
                                  data.get('number_of_nodes', 0))
@@ -63,8 +63,7 @@ class ElasticSearch(base.JSONStatsPlugin):
             self.add_gauge_value('Cluster/Shards/Unassigned', 'shards',
                                  data.get('unassigned_shards', 0))
         else:
-            LOGGER.error('Error collecting cluster stats (%s): %s',
-                         response.status_code, response.content)
+            LOGGER.error('Error collecting cluster stats')
 
     def add_index_datapoints(self, stats):
         """Add the data points for Component/Indices

@@ -353,7 +353,8 @@ class HTTPStatsPlugin(Plugin):
             return ''
 
         if response.status_code >= 300:
-            LOGGER.error('Error response from %s (%s): %s', self.stats_url,
+            LOGGER.error('Error response from %s (%s): %s',
+                         url or self.stats_url,
                          response.status_code, response.content)
             return None
         return response
